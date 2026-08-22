@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Life Replay
 
-## Getting Started
+Life Replay is a modern full-stack web application built with **Next.js 16**, **Prisma ORM**, and **Neon PostgreSQL**. It offers a seamless platform for capturing, organizing, and revisiting life's key moments.
 
-First, run the development server:
+---
+
+## 🚀 Tech Stack
+
+- **Framework:** Next.js (App Router, Server Actions, Server Components)
+- **Database:** Neon PostgreSQL (Serverless Postgres)
+- **ORM:** Prisma
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+
+---
+
+## 🛠️ Getting Started
+
+Follow these instructions to set up and run the project locally on your machine.
+
+### Prerequisites
+
+Ensure you have the following installed:
+
+- Node.js (v18.x or higher)
+- npm, yarn, or pnpm
+- A Neon PostgreSQL account and database instance
+
+---
+
+### Installation
+
+1. **Clone the repository:**
+git clone [<https://github.com/your-username/life_replay.git>](<https://github.com/your-username/life_replay.git>)
+cd life_replay
+
+Install dependencies:
+npm install
+Configure Environment Variables:
+Create a .env file in the root directory and add your Neon PostgreSQL connection strings:
+
+Code snippet
+# Pooled connection string for application runtime
+DATABASE_URL="postgresql://neondb_owner:YOUR_PASSWORD@ep-...-pooler.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require"
+
+# Direct connection string for Prisma CLI migrations
+DIRECT_URL="postgresql://neondb_owner:YOUR_PASSWORD@ep-....c-5.us-east-2.aws.neon.tech/neondb?sslmode=require"
+Run Database Migrations:
+Push your Prisma schema to your Neon PostgreSQL database:
 
 ```bash
+npx prisma migrate dev
+Generate Prisma Client:
+
+Bash
+npx prisma generate
+Start the Development Server:
+
+Bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Open <http://localhost:3000> in your browser to view the application.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+📁 Project Structure
+Plaintext
+life_replay/
+├── app/                  # Next.js App Router
+│   ├── api/              # API Route Handlers
+│   ├── page.tsx          # Main Entry Page
+│   └── layout.tsx        # Root Layout
+├── lib/                  # Shared utility modules
+│   └── prisma.ts         # Prisma Client Singleton
+├── prisma/               # Prisma schema configuration and migrations
+│   └── schema.prisma
+├── public/               # Static assets
+├── .env                  # Environment variables (Git-ignored)
+├── .gitignore            # Git ignore file
+└── README.md             # Project documentation
+🔒 Ignored Files (.gitignore)
+This project is configured to exclude local environments, dependencies, build caches, and sensitive database configurations from source control:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Dependencies: node_modules/
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Next.js Cache & Builds: .next/, out/, build/
 
-## Learn More
+Secrets: .env, .env*.local
 
-To learn more about Next.js, take a look at the following resources:
+Logs & IDE: .vscode/, *.log
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Custom Docs: skill.md (local context instructions)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+🤝 Contributing
+Contributions, issues, and feature requests are welcome! Feel free to check the repository issues page if you want to contribute.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+📄 License
+This project is licensed under the MIT License.
