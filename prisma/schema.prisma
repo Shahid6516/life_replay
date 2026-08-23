@@ -5,20 +5,99 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+
 }
 
 
-model User { 
-  id    Int     @id @default(autoincrement()) 
-  email String  @unique
-  name  String?
-  posts Post[]
-} 
-model Post { 
-  id        Int     @id @default(autoincrement()) 
-  title     String
-  content   String?
-  published Boolean @default(false) 
-  authorId  Int
-  author    User    @relation(fields: [authorId], references: [id]) 
-} 
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+}
+
+enum Mood {
+  HAPPY
+  EXCITED
+  PEACEFUL
+  GRATEFUL
+  NOSTALGIC
+  SAD
+  REFLECTIVE
+}
+
+model User {
+  id          String     @id @default(cuid())
+  clerkId     String     @unique
+  email       String     @unique
+  name        String?
+  imageUrl    String?
+  memories    Memory[]
+  chapters    Chapter[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([clerkId])
+}
+
+model Chapter {
+  id          String     @id @default(cuid())
+  title       String     // E.g., "College Days", "Europe Trip", "First Job"
+  description String?    @db.Text
+  coverImage  String?
+  startDate   DateTime?
+  endDate     DateTime?
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  memories    Memory[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([userId])
+}
+
+model Memory {
+  id           String     @id @default(cuid())
+  title        String
+  description  String?    @db.Text
+  eventDate    DateTime   @default(now())
+  location     String?    // E.g., "Manali", "College Campus"
+  mood         Mood?      @default(HAPPY)
+  isFavorite   Boolean    @default(false)
+  isPrivate    Boolean    @default(true)
+
+  // Media attachments (supports multiple photos/videos per memory)
+  media        Media[]
+
+  // AI Enhancements (Gemini auto-summaries, mood reflections, nostalgia recaps)
+  aiSummary    String?    @db.Text
+  aiReflection String?    @db.Text
+  tags         String[]   // PostgreSQL string array: ["friends", "travel", "milestone"]
+
+  // Relations
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  chapterId    String?
+  chapter      Chapter?   @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([chapterId])
+  @@index([eventDate])
+}
+
+model Media {
+  id        String    @id @default(cuid())
+  url       String    // Vercel Blob / Cloudinary URL
+  type      MediaType @default(IMAGE)
+  fileName  String?
+  fileSize  Int?
+  memoryId  String
+  memory    Memory    @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+
+  @@index([memoryId])
+}

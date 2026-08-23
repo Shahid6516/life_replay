@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import dotenv from "dotenv"
 
 export default async function HomePage() {
   // 1. Fetch data directly from Neon via Prisma
