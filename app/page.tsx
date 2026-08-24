@@ -1,29 +1,52 @@
-import prisma from "@/lib/prisma";
-import dotenv from "dotenv"
+import { auth } from "@clerk/nextjs/server";
+import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { getDbUser } from "@/lib/currentUser";
 
 export default async function HomePage() {
-  // 1. Fetch data directly from Neon via Prisma
-  const users = await prisma.user.findMany();
+  const { userId } = await auth();
+
+  // If user is logged in with Clerk, sync & retrieve their Neon DB record
+  let dbUser = null;
+  if (userId) {
+    dbUser = await getDbUser();
+  }
 
   return (
-    <main className="max-w-3xl mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-6">Database Records</h1>
+    <main className="max-w-4xl mx-auto p-8">
+      <nav className="flex justify-between items-center pb-6 border-b">
+        <h1 className="text-2xl font-bold tracking-tight">Life Replay 📖</h1>
 
-      {users.length === 0 ? (
-        <p className="">No records found. Insert one via Prisma Studio!</p>
-      ) : (
-        <div className="space-y-4">
-          {users.map((user) => (
-            <div key={user.id} className="p-4 border rounded-lg shadow-sm ">
-              <h2 className="font-semibold text-lg">{user.name ?? "Unnamed"}</h2>
-              <p className=" text-sm">{user.email}</p>
-              <span className="text-xs text-gray-400">
-                Created: {new Date().toLocaleString()}
-              </span>
+        <div>
+          {!userId ? (
+            <div className="flex items-center gap-3">
+              <SignInButton mode="modal">
+                <button className="px-4 py-2 text-sm font-medium border rounded-lg hover:bg-gray-100 transition">
+                  Sign In
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="px-4 py-2 text-sm font-medium bg-black text-white rounded-lg hover:bg-neutral-800 transition">
+                  Sign Up
+                </button>
+              </SignUpButton>
             </div>
-          ))}
+          ) : (
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600">
+                Welcome, {dbUser?.name ?? "Explorer"}!
+              </span>
+              <UserButton />
+            </div>
+          )}
         </div>
-      )}
+      </nav>
+
+      <section className="mt-8">
+        <h2 className="text-xl font-semibold mb-2">Welcome to your Life Replay timeline!</h2>
+        <p className="text-gray-600">
+         
+        </p>
+      </section>
     </main>
   );
 }
