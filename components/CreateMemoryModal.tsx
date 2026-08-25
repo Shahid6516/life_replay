@@ -144,7 +144,6 @@ export default function CreateMemoryModal() {
                 />
               </div>
 
-              {/* Image Upload Field */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-600 mb-1">
                   Upload Photo

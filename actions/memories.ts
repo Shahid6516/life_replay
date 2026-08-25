@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
 import { getDbUser } from "@/lib/currentUser";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
+import { generateMemoryReflection } from "@/lib/gemini";
 import { Mood, MediaType } from "@prisma/client";
 
 export async function createMemoryWithImage(formData: FormData) {
@@ -25,18 +26,20 @@ export async function createMemoryWithImage(formData: FormData) {
       throw new Error("Title and event date are required.");
     }
 
-    // 1. Upload image to Cloudinary if a file was selected
     let uploadedImageUrl: string | undefined = undefined;
     if (imageFile && imageFile.size > 0 && imageFile.name !== "undefined") {
       uploadedImageUrl = await uploadImageToCloudinary(imageFile);
     }
 
-    // 2. Parse tags
-    const tags = tagsRaw
+    const aiData = await generateMemoryReflection(title, description, location, mood);
+
+    const userTags = tagsRaw
       ? tagsRaw.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean)
       : [];
+    const combinedTags = Array.from(
+      new Set([...userTags, ...(aiData?.suggestedTags || [])])
+    );
 
-    // 3. Save to Neon PostgreSQL
     const newMemory = await prisma.memory.create({
       data: {
         title,
@@ -44,7 +47,9 @@ export async function createMemoryWithImage(formData: FormData) {
         eventDate: new Date(eventDate),
         location,
         mood,
-        tags,
+        tags: combinedTags,
+        aiSummary: aiData?.aiSummary || null,
+        aiReflection: aiData?.aiReflection || null,
         userId: user.id,
         media: uploadedImageUrl
           ? {

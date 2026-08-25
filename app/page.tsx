@@ -23,7 +23,6 @@ export default async function HomePage() {
 
   return (
     <main className="max-w-4xl mx-auto p-6 md:p-10">
-      {/* Header */}
       <nav className="flex justify-between items-center pb-6 border-b">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Life Replay 📖</h1>
@@ -53,7 +52,6 @@ export default async function HomePage() {
         </div>
       </nav>
 
-      {/* Main Content */}
       <section className="mt-8">
         {!userId ? (
           <div className="text-center py-20 bg-neutral-50 rounded-2xl border border-dashed">
@@ -107,7 +105,6 @@ export default async function HomePage() {
                       </p>
                     )}
 
-                    {/* Media preview */}
                     {mem.media?.[0]?.url && (
                       <div className="mt-4 overflow-hidden rounded-lg border max-h-72">
                         <img
