@@ -7,24 +7,29 @@ cloudinary.config({
 });
 
 export async function uploadImageToCloudinary(file: File): Promise<string> {
+  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY) {
+    throw new Error("Cloudinary credentials missing in .env");
+  }
+
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
   return new Promise((resolve, reject) => {
-    cloudinary.uploader
-      .upload_stream(
-        {
-          folder: "life_replay",
-          resource_type: "auto",
-        },
-        (error, result) => {
-          if (error || !result) {
-            reject(error || new Error("Failed to upload image to Cloudinary"));
-          } else {
-            resolve(result.secure_url);
-          }
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: "life_replay",
+        resource_type: "auto",
+        timeout: 15000,
+      },
+      (error, result) => {
+        if (error || !result) {
+          reject(error || new Error("Cloudinary upload failed"));
+        } else {
+          resolve(result.secure_url);
         }
-      )
-      .end(buffer);
+      }
+    );
+
+    uploadStream.end(buffer);
   });
 }
