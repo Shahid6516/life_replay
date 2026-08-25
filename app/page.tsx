@@ -26,7 +26,9 @@ export default async function HomePage() {
       <nav className="flex justify-between items-center pb-6 border-b">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Life Replay 📖</h1>
-          <p className="text-xs text-neutral-500">Your personal chronicle & timeline</p>
+          <p className="text-xs text-neutral-500">
+            Your personal chronicle & timeline
+          </p>
         </div>
 
         <div>
@@ -55,22 +57,28 @@ export default async function HomePage() {
       <section className="mt-8">
         {!userId ? (
           <div className="text-center py-20 bg-neutral-50 rounded-2xl border border-dashed">
-            <h2 className="text-xl font-semibold text-neutral-800">Your memories deserve a home</h2>
+            <h2 className="text-xl font-semibold text-neutral-800">
+              Your memories deserve a home
+            </h2>
             <p className="text-neutral-500 text-sm mt-1 max-w-sm mx-auto">
               Sign in to start creating your interactive life replay timeline.
             </p>
           </div>
         ) : memories.length === 0 ? (
           <div className="text-center py-20 bg-neutral-50 rounded-2xl border border-dashed">
-            <h2 className="text-lg font-semibold text-neutral-800">No memories recorded yet</h2>
+            <h2 className="text-lg font-semibold text-neutral-800">
+              No memories recorded yet
+            </h2>
             <p className="text-neutral-500 text-sm mt-1 mb-4">
-              Click the "+ Add Memory" button above to capture your first moment.
+              Click the "+ Add Memory" button above to capture your first
+              moment.
             </p>
           </div>
         ) : (
           <div className="space-y-6">
             <h2 className="text-lg font-semibold tracking-tight text-neutral-800">
-              Timeline ({memories.length} {memories.length === 1 ? "Memory" : "Memories"})
+              Timeline ({memories.length}{" "}
+              {memories.length === 1 ? "Memory" : "Memories"})
             </h2>
 
             <div className="relative border-l-2 border-neutral-200 ml-4 pl-6 space-y-8">
@@ -90,7 +98,9 @@ export default async function HomePage() {
                           })}
                         </span>
                         {mem.location && (
-                          <span className="text-xs text-neutral-500">📍 {mem.location}</span>
+                          <span className="text-xs text-neutral-500">
+                            📍 {mem.location}
+                          </span>
                         )}
                       </div>
                       <span className="text-xs font-medium uppercase tracking-wider text-neutral-400">
@@ -98,7 +108,9 @@ export default async function HomePage() {
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-bold text-neutral-900">{mem.title}</h3>
+                    <h3 className="text-lg font-bold text-neutral-900">
+                      {mem.title}
+                    </h3>
                     {mem.description && (
                       <p className="text-neutral-600 text-sm mt-2 leading-relaxed">
                         {mem.description}
@@ -126,6 +138,17 @@ export default async function HomePage() {
                             #{tag}
                           </span>
                         ))}
+                      </div>
+                    )}
+                    {/* AI Reflection Card */}
+                    {mem.aiReflection && (
+                      <div className="mt-4 p-3.5 bg-gradient from-amber-50 to-orange-50 border border-amber-200/60 rounded-xl">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-900 mb-1">
+                          <span>✨</span> AI Reflection
+                        </div>
+                        <p className="text-xs text-amber-950 italic leading-relaxed">
+                          "{mem.aiReflection}"
+                        </p>
                       </div>
                     )}
                   </div>
