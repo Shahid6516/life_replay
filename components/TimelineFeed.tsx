@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import ModernMemoryCard from "@/components/CreateMemoryModal";
+import ModernMemoryCard from "@/components/ModernMemoryCard";
 
 const MOODS = [
   { key: "ALL", label: "✨ All Moments" },
@@ -34,7 +34,7 @@ export default function TimelineFeed({ initialMemories }: { initialMemories: any
   // Handle Tag click
   const handleTagClick = (tag: string) => {
     if (selectedTag === tag) {
-      setSelectedTag(null); // toggle off
+      setSelectedTag(null);
     } else {
       setSelectedTag(tag);
     }
@@ -43,15 +43,12 @@ export default function TimelineFeed({ initialMemories }: { initialMemories: any
   // Filter logic
   const filteredMemories = useMemo(() => {
     return initialMemories.filter((mem) => {
-      // 1. Mood Filter
       const matchesMood = selectedMood === "ALL" || mem.mood === selectedMood;
 
-      // 2. Specific Tag Filter
       const matchesTag =
         !selectedTag ||
         mem.tags?.some((t: string) => t.toLowerCase() === selectedTag.toLowerCase());
 
-      // 3. Search Query Filter (Title, Description, Location, Tags)
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
         q === "" ||
@@ -74,10 +71,8 @@ export default function TimelineFeed({ initialMemories }: { initialMemories: any
 
   return (
     <div className="space-y-6">
-      {/* Search & Filter Command Center */}
+      {/* Search & Filter Toolbar */}
       <div className="bg-zinc-900/50 border border-zinc-800/80 rounded-2xl p-4 backdrop-blur-md space-y-3.5 shadow-lg">
-        
-        {/* Search Bar & Active Indicator */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <span className="absolute left-3.5 top-2.5 text-zinc-500 text-sm">🔍</span>
@@ -86,12 +81,12 @@ export default function TimelineFeed({ initialMemories }: { initialMemories: any
               placeholder="Search memories, locations, stories, or tags..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-10 py-2 bg-zinc-950/70 border border-zinc-800 rounded-xl text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/40 transition"
+              className="w-full pl-10 pr-10 py-2 bg-zinc-950/70 border border-zinc-800 rounded-xl text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-2 text-zinc-500 hover:text-zinc-300 text-sm"
+                className="absolute right-3 top-2 text-zinc-500 hover:text-zinc-300 text-sm cursor-pointer"
               >
                 ✕
               </button>
@@ -135,7 +130,7 @@ export default function TimelineFeed({ initialMemories }: { initialMemories: any
           })}
         </div>
 
-        {/* Clickable Quick-Tags Cloud (If tags exist) */}
+        {/* Tag Cloud */}
         {tagCounts.length > 0 && (
           <div className="flex items-center gap-1.5 flex-wrap pt-2 border-t border-zinc-800/60">
             <span className="text-[11px] uppercase tracking-wider text-zinc-500 font-semibold mr-1">
@@ -159,28 +154,28 @@ export default function TimelineFeed({ initialMemories }: { initialMemories: any
         )}
       </div>
 
-      {/* Results Header */}
+      {/* Counter Header */}
       <div className="flex justify-between items-center px-1 text-xs text-zinc-400">
         <span>
           Showing {filteredMemories.length} of {initialMemories.length} moments
         </span>
         {selectedTag && (
-          <span className="text-indigo-400 font-medium">
-            Filtered by #{selectedTag}
-          </span>
+          <button
+            onClick={() => setSelectedTag(null)}
+            className="text-indigo-400 font-medium hover:underline cursor-pointer"
+          >
+            Filtered by #{selectedTag} ✕
+          </button>
         )}
       </div>
 
-      {/* Timeline List */}
+      {/* Memory Feed */}
       {filteredMemories.length === 0 ? (
         <div className="text-center py-20 bg-zinc-900/20 border border-dashed border-zinc-800/80 rounded-2xl space-y-2">
           <p className="text-sm font-medium text-zinc-300">No matching memories found</p>
-          <p className="text-xs text-zinc-500">
-            Try adjusting your search query, mood filter, or tag selection.
-          </p>
           <button
             onClick={clearAllFilters}
-            className="mt-2 text-xs text-indigo-400 hover:underline cursor-pointer"
+            className="text-xs text-indigo-400 hover:underline cursor-pointer"
           >
             Clear all filters
           </button>
