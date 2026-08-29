@@ -24,3 +24,84 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Clerk Dark Mode Force Text Overrides */
+.cl-card,
+.cl-modalContent {
+  background-color: #121215 !important;
+  border: 1px solid #27272a !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
+  overflow:hidden;
+}
+
+/* Titles and Subtitles */
+.cl-headerTitle {
+  color: #ffffff !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+}
+
+.cl-footer {
+  background-color: #121215 !important;
+  border-top: 1px solid #27272a !important;
+}
+
+.cl-footerActionText,
+.cl-footerActionLink {
+  color: #a1a1aa !important;
+}
+
+.cl-headerSubtitle {
+  color: #a1a1aa !important;
+  font-size: 0.85rem !important;
+}
+
+/* Form Labels & Field Text */
+.cl-formFieldLabel {
+  color: #e4e4e7 !important;
+  font-weight: 600 !important;
+  font-size: 0.8rem !important;
+}
+
+.cl-formFieldInput {
+  background-color: #18181b !important;
+  color: #ffffff !important;
+  border: 1px solid #3f3f46 !important;
+}
+
+.cl-formFieldInput::placeholder {
+  color: #71717a !important;
+}
+
+/* Social Buttons */
+.cl-socialButtonsBlockButton {
+  background-color: #18181b !important;
+  border: 1px solid #3f3f46 !important;
+  color: #ffffff !important;
+}
+
+.cl-socialButtonsBlockButtonText {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* Dividers & Footers */
+.cl-dividerLine {
+  background-color: #27272a !important;
+}
+
+.cl-dividerText {
+  color: #71717a !important;
+}
+
+.cl-footerActionText {
+  color: #a1a1aa !important;
+}
+
+.cl-footerActionLink {
+  color: #818cf8 !important;
+}
+
+.cl-internal-b3fm6y {
+  color: #ffffff !important;
+}
