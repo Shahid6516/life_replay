@@ -1,9 +1,12 @@
 import { SignUp } from "@clerk/nextjs";
+import AuthLayout from "@/components/AuthLayout";
+
+export const dynamic = "force-dynamic";
 
 export default function SignUpPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#09090b] px-4">
+    <AuthLayout>
       <SignUp />
-    </div>
+    </AuthLayout>
   );
 }

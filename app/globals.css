@@ -105,3 +105,95 @@ body {
 .cl-internal-b3fm6y {
   color: #ffffff !important;
 }
+
+/* Clerk Split Screen Minimal Dark Form Styles */
+.cl-rootBox {
+  width: 100% !important;
+}
+
+.cl-card {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  width: 100% !important;
+}
+
+.cl-headerTitle {
+  font-family: var(--font-bricolage), sans-serif !important;
+  font-size: 2rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+  color: #ffffff !important;
+}
+
+.cl-headerSubtitle {
+  color: #a1a1aa !important;
+  font-size: 0.875rem !important;
+  margin-top: 0.25rem !important;
+}
+
+/* Rounded Pill Inputs matching the design */
+.cl-formFieldInput {
+  background-color: #121215 !important;
+  border: 1px solid #27272a !important;
+  border-radius: 9999px !important;
+  padding: 0.75rem 1.25rem !important;
+  color: #ffffff !important;
+  font-size: 0.875rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.cl-formFieldInput:focus {
+  border-color: #ff4500 !important;
+  box-shadow: 0 0 0 1px #ff4500 !important;
+}
+
+/* Primary Action Button */
+.cl-formButtonPrimary {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-radius: 9999px !important;
+  font-weight: 700 !important;
+  padding: 0.8rem !important;
+  font-size: 0.875rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.cl-formButtonPrimary:hover {
+  background-color: #e4e4e7 !important;
+  transform: translateY(-1px);
+}
+
+/* Social Buttons */
+.cl-socialButtonsBlockButton {
+  background-color: #121215 !important;
+  border: 1px solid #27272a !important;
+  border-radius: 9999px !important;
+  color: #ffffff !important;
+  padding: 0.7rem !important;
+}
+
+.cl-socialButtonsBlockButton:hover {
+  background-color: #18181b !important;
+  border-color: #3f3f46 !important;
+}
+
+.cl-footer {
+  background: transparent !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

@@ -1,8 +1,9 @@
-import { ClerkProvider } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
 import type { Metadata } from "next";
 import { Bricolage_Grotesque } from "next/font/google";
+import Providers from "@/components/Providers";
 import "./globals.css";
+
+export const dynamic = "force-dynamic";
 
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -21,12 +22,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider appearance={{ baseTheme: dark }}>
-      <html lang="en" className={`dark ${bricolage.variable} ${bricolage.className}`}>
-        <body className={`${bricolage.className} bg-zinc-950 text-white antialiased selection:bg-orange-500 selection:text-white`}>
-          {children}
-        </body>
-      </html>
-    </ClerkProvider>
+    <html
+      lang="en"
+      className={`dark ${bricolage.variable} ${bricolage.className}`}
+    >
+      <body
+        className={`${bricolage.className} bg-[#070709] text-white antialiased selection:bg-orange-500 selection:text-white`}
+      >
+        <Providers>{children}</Providers>
+      </body>
+    </html>
   );
 }
