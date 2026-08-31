@@ -25,13 +25,12 @@ export default function HeroLanding() {
 
   return (
     <div className="min-h-screen bg-[#070709] text-white flex flex-col items-center justify-start overflow-x-hidden selection:bg-[#ff4500] selection:text-white font-sans">
-      {/* -------------------- AMBIENT GLOW BACKDROPS -------------------- */}
+
       <div className="fixed top-10 left-1/2 -translate-x-1/2 w-[700px] h-[380px] bg-gradient-to-tr from-orange-500/10 via-amber-500/5 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
       <div className="fixed bottom-10 right-10 w-96 h-96 bg-orange-600/5 rounded-full blur-3xl pointer-events-none -z-10" />
 
-      {/* -------------------- TOP FLOATING NAVBAR -------------------- */}
       <header className="w-full max-w-6xl px-4 pt-6 flex items-center justify-between z-30 sticky top-0 bg-[#070709]/80 backdrop-blur-md pb-4 border-b border-zinc-900/60">
-        {/* Brand Pill */}
+
         <Link
           href="/"
           className="px-4 py-2 rounded-full border border-zinc-800/80 bg-[#121216]/90 backdrop-blur-md flex items-center gap-2 shadow-sm hover:border-zinc-700 transition"
@@ -44,7 +43,6 @@ export default function HeroLanding() {
           </span>
         </Link>
 
-        {/* Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 px-6 py-2 rounded-full bg-[#121216]/90 border border-zinc-800/80 backdrop-blur-md shadow-lg">
           <a
             href="#features"
@@ -67,7 +65,6 @@ export default function HeroLanding() {
           </a>
         </nav>
 
-        {/* Auth CTA Cluster */}
         <div className="flex items-center gap-3">
           <Link
             href="/sign-in"
@@ -85,9 +82,9 @@ export default function HeroLanding() {
         </div>
       </header>
 
-      {/* -------------------- 1. HERO SECTION -------------------- */}
+
       <section className="relative max-w-4xl mx-auto text-center mt-16 md:mt-24 px-4 flex flex-col items-center z-10 space-y-6">
-        {/* Status Pill Badge */}
+
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-orange-500/20 bg-[#141419]/90 backdrop-blur-sm shadow-md">
           <span className="w-2 h-2 rounded-full bg-[#ff4500] animate-pulse" />
           <span className="text-xs font-semibold text-orange-300/90 tracking-wide">
@@ -95,19 +92,16 @@ export default function HeroLanding() {
           </span>
         </div>
 
-        {/* Punchy Title */}
         <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight text-white max-w-3xl leading-[1.08]">
           Relive Your Life 3× Deeper With AI-Chronicle Reflections
         </h1>
 
-        {/* Subtitle */}
         <p className="text-zinc-400 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
           Stop letting unforgettable moments fade into camera rolls. Automatically
           weave photos, thoughts, and milestones into a living personal timeline
           with Gemini AI.
         </p>
 
-        {/* CTA Button */}
         <div className="relative pt-2 flex flex-col items-center">
           <Link
             href="/sign-up"
@@ -125,7 +119,7 @@ export default function HeroLanding() {
 
       <section className="w-full max-w-5xl px-4 mt-16 z-10">
         <div className="relative rounded-[2.5rem] border border-zinc-800/80 bg-[#111116]/90 p-4 sm:p-6 shadow-2xl backdrop-blur-xl">
-          {/* Subtle Accent Edge Glow */}
+
           <div className="absolute -top-1 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-[#ff4500]/60 to-transparent" />
 
           <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80 px-2">
@@ -316,7 +310,6 @@ export default function HeroLanding() {
         </div>
       </section>
 
-      {/* -------------------- 5. CORE FEATURES BENTO GRID -------------------- */}
       <section id="features" className="w-full max-w-6xl px-4 mt-28 z-10 space-y-12">
         <div className="text-center space-y-3 max-w-2xl mx-auto">
           <span className="text-[11px] font-bold uppercase tracking-wider text-orange-400">
@@ -331,7 +324,6 @@ export default function HeroLanding() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 1: Chronological Spine */}
           <div className="rounded-[2rem] p-7 border border-zinc-800/80 bg-[#111116] space-y-4 hover:border-zinc-700 transition shadow-lg">
             <div className="w-10 h-10 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-400 flex items-center justify-center">
               <TrendingUp className="w-5 h-5" />
@@ -343,7 +335,6 @@ export default function HeroLanding() {
             </p>
           </div>
 
-          {/* Card 2: Visual Snapshots */}
           <div className="rounded-[2rem] p-7 border border-zinc-800/80 bg-[#111116] space-y-4 hover:border-zinc-700 transition shadow-lg">
             <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
               <Camera className="w-5 h-5" />
@@ -355,7 +346,6 @@ export default function HeroLanding() {
             </p>
           </div>
 
-          {/* Card 3: Encrypted Archives */}
           <div className="rounded-[2rem] p-7 border border-zinc-800/80 bg-[#111116] space-y-4 hover:border-zinc-700 transition shadow-lg">
             <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center">
               <Lock className="w-5 h-5" />
@@ -369,7 +359,6 @@ export default function HeroLanding() {
         </div>
       </section>
 
-      {/* -------------------- 6. FINAL BOTTOM CTA BANNER -------------------- */}
       <section className="w-full max-w-5xl px-4 mt-28 mb-20 z-10">
         <div className="relative rounded-[2.5rem] border border-orange-500/30 bg-gradient-to-br from-[#ff4500]/20 via-[#121216] to-[#0a0a0d] p-8 sm:p-14 text-center space-y-6 shadow-2xl overflow-hidden">
           <div className="space-y-2 max-w-xl mx-auto">
@@ -393,7 +382,6 @@ export default function HeroLanding() {
         </div>
       </section>
 
-      {/* -------------------- 7. MINIMAL PILL FOOTER -------------------- */}
       <footer className="w-full max-w-6xl px-4 pb-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-zinc-900 text-xs text-zinc-500">
         <div className="flex items-center gap-2">
           <span className="font-bold text-zinc-300">LifeReplay</span>

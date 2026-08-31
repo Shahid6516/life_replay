@@ -14,6 +14,11 @@ const bricolage = Bricolage_Grotesque({
 export const metadata: Metadata = {
   title: "Life Replay — AI Life Chronicle",
   description: "Relive every memory, reflection, and milestone.",
+  icons: {
+    icon: "/logo.png" , 
+    shortcut: "/favicon.ico",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

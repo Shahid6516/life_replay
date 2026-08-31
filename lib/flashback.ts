@@ -18,12 +18,11 @@ export function findOnThisDayMemories(memories: MemoryWithMedia[]): MemoryWithMe
 
   return memories.filter((mem) => {
     const memDate = new Date(mem.eventDate);
-    // Matches the same month and day, but from a previous year or earlier
+
     const isSameDate =
       memDate.getMonth() === currentMonth &&
       memDate.getDate() === currentDay;
     
-    // Check if it's from a different year or at least recorded in the past
     return isSameDate && memDate.getFullYear() <= currentYear;
   });
 }

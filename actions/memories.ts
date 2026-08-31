@@ -1,79 +1,80 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import cloudinary from "@/lib/cloudinary";
 import prisma from "@/lib/prisma";
-import { getDbUser } from "@/lib/currentUser";
-import { uploadImageToCloudinary } from "@/lib/cloudinary";
-import { generateMemoryReflection } from "@/lib/gemini";
+import { auth } from "@clerk/nextjs/server";
+import { revalidatePath } from "next/cache";
 import { Mood, MediaType } from "@prisma/client";
 
-export async function createMemoryWithImage(formData: FormData) {
+interface CreateMemoryInput {
+  title: string;
+  body: string;
+  tag: string;
+  mood: string;
+  location?: string;
+  base64Image?: string;
+}
+
+function parseMood(moodStr?: string): Mood {
+  if (!moodStr) return Mood.HAPPY;
+  const upper = moodStr.toUpperCase().trim();
+  if (upper in Mood) {
+    return upper as Mood;
+  }
+  return Mood.HAPPY;
+}
+
+export async function createMemoryAction(data: CreateMemoryInput) {
   try {
-    const user = await getDbUser();
+    const { userId } = await auth();
+
+    if (!userId) {
+      throw new Error("Unauthorized. Please log in.");
+    }
+
+    // 1. Find user in database
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+    });
+
     if (!user) {
-      return { success: false, error: "Unauthorized: Please sign in first." };
+      throw new Error("User record not found in database.");
     }
 
-    const title = formData.get("title") as string;
-    const eventDate = formData.get("eventDate") as string;
-    const description = (formData.get("description") as string) || undefined;
-    const location = (formData.get("location") as string) || undefined;
-    const mood = (formData.get("mood") as Mood) || "HAPPY";
-    const tagsRaw = formData.get("tags") as string;
-    const imageFile = formData.get("image") as File | null;
+    let hostedImageUrl: string | undefined = undefined;
 
-    if (!title || !eventDate) {
-      return { success: false, error: "Title and event date are required." };
+    // 2. Upload photo to Cloudinary if attached
+    if (data.base64Image && data.base64Image.startsWith("data:image")) {
+      const uploadResult = await cloudinary.uploader.upload(data.base64Image, {
+        folder: "life_replay_memories",
+        resource_type: "image",
+      });
+
+      hostedImageUrl = uploadResult.secure_url;
     }
 
-    // 1. Upload to Cloudinary ONLY if a real file with content exists
-    let uploadedImageUrl: string | undefined = undefined;
-    if (imageFile && typeof imageFile !== "string" && imageFile.size > 0 && imageFile.name !== "undefined") {
-      try {
-        uploadedImageUrl = await uploadImageToCloudinary(imageFile);
-      } catch (uploadErr) {
-        console.error("Cloudinary upload failed, continuing without image:", uploadErr);
-      }
-    }
-
-    // 2. Safely generate AI Reflection (Won't hang if Gemini fails)
-    let aiData = null;
-    try {
-      aiData = await generateMemoryReflection(title, description, location, mood);
-    } catch (aiErr) {
-      console.error("Gemini failed, proceeding without AI reflection:", aiErr);
-    }
-
-    // 3. Combine user tags + AI tags
-    const userTags = tagsRaw
-      ? tagsRaw.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean)
-      : [];
-    const combinedTags = Array.from(
-      new Set([...userTags, ...(aiData?.suggestedTags || [])])
-    );
-
-    // 4. Save to Neon Database
+    // 3. Create Memory + nested Media record
     const newMemory = await prisma.memory.create({
       data: {
-        title,
-        description,
-        eventDate: new Date(eventDate),
-        location,
-        mood,
-        tags: combinedTags,
-        aiSummary: aiData?.aiSummary || null,
-        aiReflection: aiData?.aiReflection || null,
         userId: user.id,
-        media: uploadedImageUrl
-          ? {
-              create: [
-                {
-                  url: uploadedImageUrl,
-                  type: MediaType.IMAGE,
-                },
-              ],
-            }
-          : undefined,
+        title: data.title,
+        description: data.body,
+        mood: parseMood(data.mood),
+        location: data.location || "Recorded Moment",
+        tags: data.tag ? [data.tag] : ["Life"],
+        aiSummary: "An unforgettable milestone etched into your personal chronicle.",
+        aiReflection: "This moment captured a key memory in your personal journey.",
+        // Nested relation creation for Media
+        ...(hostedImageUrl && {
+          media: {
+            create: [
+              {
+                url: hostedImageUrl,
+                type: MediaType.IMAGE,
+              },
+            ],
+          },
+        }),
       },
       include: {
         media: true,
@@ -81,9 +82,35 @@ export async function createMemoryWithImage(formData: FormData) {
     });
 
     revalidatePath("/");
-    return { success: true, memory: newMemory };
+
+    // Format mood for dashboard UI (e.g., HAPPY -> Happy)
+    const formattedMood =
+      (newMemory.mood || "HAPPY").charAt(0) +
+      (newMemory.mood || "HAPPY").slice(1).toLowerCase();
+
+    return {
+      success: true,
+      memory: {
+        id: newMemory.id,
+        title: newMemory.title,
+        body: newMemory.description || "",
+        date: new Date(newMemory.createdAt).toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        }),
+        tag: newMemory.tags?.[0] || "Life",
+        mood: formattedMood as any,
+        location: newMemory.location || "Recorded Moment",
+        imageUrl: newMemory.media?.[0]?.url || undefined,
+        aiReflection: newMemory.aiReflection || newMemory.aiSummary || undefined,
+      },
+    };
   } catch (error: any) {
-    console.error("Error creating memory:", error);
-    return { success: false, error: error.message || "Failed to create memory" };
+    console.error("Failed to create memory:", error);
+    return {
+      success: false,
+      error: error.message || "Failed to process memory upload.",
+    };
   }
 }

@@ -28,8 +28,10 @@ import {
   Bot,
   Trash2,
   ArchiveRestore,
+  Loader2,
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
+import { createMemoryAction } from "@/actions/memories";
 
 export interface Memory {
   id: string;
@@ -83,11 +85,10 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
   const [currentTab, setCurrentTab] = useState("dashboard");
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Memories State
   const [memories, setMemories] = useState<Memory[]>(initialMemories);
 
-  // Form State
   const [formData, setFormData] = useState({
     title: "",
     body: "",
@@ -107,7 +108,6 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
     { id: "archives", label: "Archives", icon: Archive },
   ];
 
-  // Actions
   const handleDeleteMemory = (id: string) => {
     if (confirm("Are you sure you want to delete this memory?")) {
       setMemories((prev) => prev.filter((m) => m.id !== id));
@@ -131,33 +131,64 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
     }
   };
 
-  const handleCreateMemory = (e: React.FormEvent) => {
+  const handleCreateMemory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim() || !formData.body.trim()) return;
 
-    const newMemory: Memory = {
-      id: Date.now().toString(),
-      title: formData.title,
-      body: formData.body,
-      date: new Date().toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      }),
-      tag: formData.tag || "Life",
-      mood: formData.mood,
-      location: formData.location || "Recorded Moment",
-      imageUrl: formData.imageUrl || undefined,
-      isArchived: false,
-      aiReflection: "An unforgettable milestone etched into your personal chronicle.",
-    };
+    setIsSaving(true);
 
-    setMemories((prev) => [newMemory, ...prev]);
-    setFormData({ title: "", body: "", tag: "Life", mood: "Happy", location: "", imageUrl: "" });
-    setIsModalOpen(false);
+    try {
+      const res = await createMemoryAction({
+        title: formData.title,
+        body: formData.body,
+        tag: formData.tag,
+        mood: formData.mood,
+        location: formData.location,
+        base64Image: formData.imageUrl || undefined,
+      });
+
+      if (res.success && res.memory) {
+        setMemories((prev) => [res.memory!, ...prev]);
+        setFormData({
+          title: "",
+          body: "",
+          tag: "Life",
+          mood: "Happy",
+          location: "",
+          imageUrl: "",
+        });
+        setIsModalOpen(false);
+      } else {
+        alert(res.error || "Failed to save memory.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred while uploading to Cloudinary.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  // Filter out active vs archived memories
+  const handleExportChronicle = () => {
+    if (memories.length === 0) {
+      alert("No memories to export yet!");
+      return;
+    }
+
+    const dataStr =
+      "data:text/json;charset=utf-8," +
+      encodeURIComponent(JSON.stringify(memories, null, 2));
+    const downloadAnchor = document.createElement("a");
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute(
+      "download",
+      `life_replay_chronicle_${new Date().toISOString().slice(0, 10)}.json`
+    );
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
   const activeMemories = memories.filter((m) => !m.isArchived);
   const archivedMemories = memories.filter((m) => m.isArchived);
 
@@ -172,14 +203,16 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
 
   return (
     <div className="min-h-screen bg-[#070709] text-white flex font-sans selection:bg-[#ff4500] selection:text-white">
-      {/* -------------------- SIDEBAR -------------------- */}
+
+      {/*  SIDEBAR */}
+
       <aside
         className={`h-screen sticky top-0 flex flex-col justify-between border-r border-[#1e1e24] bg-[#101014] transition-all duration-300 z-30 p-4 ${
           isSidebarOpen ? "w-64" : "w-20"
         }`}
       >
         <div>
-          {/* Brand Header */}
+          {/* Header */}
           <div className="flex items-center justify-between pb-6 mb-4">
             <div className="flex items-center gap-3 overflow-hidden">
               <div className="w-10 h-10 min-w-[2.5rem] rounded-xl bg-gradient-to-tr from-[#ff4500] to-amber-500 border border-orange-500/30 flex items-center justify-center shadow-lg shadow-orange-500/20 text-white">
@@ -252,10 +285,11 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
           </nav>
         </div>
 
+        {/* Bottom Actions */}
        
       </aside>
 
-      {/* -------------------- MAIN CONTENT -------------------- */}
+      {/* MAIN CONTENT  */}
       <div className="flex-1 flex flex-col min-w-0 bg-[#070709]">
         {/* Top Navbar */}
         <header className="px-6 py-4 flex items-center justify-between gap-4 border-b border-zinc-900 sticky top-0 bg-[#070709]/80 backdrop-blur-md z-20">
@@ -303,8 +337,12 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
               onArchive={handleToggleArchive}
             />
           )}
-          {currentTab === "snapshots" && <SnapshotsView memories={filterList(activeMemories)} />}
-          {currentTab === "analytics" && <AnalyticsView memories={activeMemories} />}
+          {currentTab === "snapshots" && (
+            <SnapshotsView memories={filterList(activeMemories)} />
+          )}
+          {currentTab === "analytics" && (
+            <AnalyticsView memories={activeMemories} />
+          )}
           {currentTab === "archives" && (
             <ArchivesView
               memories={filterList(archivedMemories)}
@@ -315,7 +353,7 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
         </main>
       </div>
 
-      {/* -------------------- NEW MEMORY MODAL -------------------- */}
+      {/*  NEW MEMORY MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
           <div className="relative w-full max-w-lg rounded-[2rem] border border-zinc-800 bg-[#111116] p-6 sm:p-8 shadow-2xl space-y-5 my-8">
@@ -325,6 +363,7 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
                 <h3 className="text-lg font-bold text-white">Record New Memory</h3>
               </div>
               <button
+                disabled={isSaving}
                 onClick={() => setIsModalOpen(false)}
                 className="p-1 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800 transition cursor-pointer"
               >
@@ -357,7 +396,7 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
                 />
               </div>
 
-              {/* Photo Upload */}
+              {/* Photo Upload Box */}
               <div className="space-y-1.5">
                 <label className="text-zinc-400 font-semibold">Attach Photo</label>
                 <input
@@ -377,6 +416,7 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
                     />
                     <button
                       type="button"
+                      disabled={isSaving}
                       onClick={() => setFormData({ ...formData, imageUrl: "" })}
                       className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-white hover:bg-black transition cursor-pointer"
                     >
@@ -438,6 +478,7 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
               <div className="pt-3 flex items-center justify-end gap-3">
                 <button
                   type="button"
+                  disabled={isSaving}
                   onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 rounded-full text-zinc-400 hover:text-white transition cursor-pointer"
                 >
@@ -445,9 +486,17 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 rounded-full bg-[#ff4500] hover:bg-[#ff5714] text-white font-bold transition shadow-lg shadow-orange-500/20 cursor-pointer"
+                  disabled={isSaving}
+                  className="px-6 py-2 rounded-full bg-[#ff4500] hover:bg-[#ff5714] disabled:opacity-50 text-white font-bold transition shadow-lg shadow-orange-500/20 cursor-pointer flex items-center gap-2 text-xs"
                 >
-                  Save to Chronicle
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Uploading to Cloud...</span>
+                    </>
+                  ) : (
+                    <span>Save to Chronicle</span>
+                  )}
                 </button>
               </div>
             </form>
@@ -458,9 +507,8 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
   );
 }
 
-// -------------------------------------------------------------
 // SECTION: DASHBOARD VIEW
-// -------------------------------------------------------------
+
 function DashboardView({
   memories,
   onNavigateTimeline,
@@ -508,6 +556,7 @@ function DashboardView({
         </div>
 
         {/* AI Recaps Generated */}
+
         <div className="md:col-span-6 rounded-[2rem] p-7 border border-zinc-800/80 bg-[#111116] shadow-xl flex flex-col justify-between min-h-[220px]">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-amber-400" />
@@ -583,9 +632,8 @@ function DashboardView({
   );
 }
 
-// -------------------------------------------------------------
 // SECTION: FULL TIMELINE VIEW
-// -------------------------------------------------------------
+
 function TimelineView({
   memories,
   onNewMemory,
@@ -635,9 +683,8 @@ function TimelineView({
   );
 }
 
-// -------------------------------------------------------------
 // SECTION: SNAPSHOTS GALLERY
-// -------------------------------------------------------------
+
 function SnapshotsView({ memories }: { memories: Memory[] }) {
   const photoMemories = memories.filter((m) => m.imageUrl);
 
@@ -677,9 +724,8 @@ function SnapshotsView({ memories }: { memories: Memory[] }) {
   );
 }
 
-// -------------------------------------------------------------
 // SECTION: ANALYTICS VIEW
-// -------------------------------------------------------------
+
 function AnalyticsView({ memories }: { memories: Memory[] }) {
   return (
     <div className="space-y-6 animate-fade-in max-w-4xl">
@@ -713,9 +759,8 @@ function AnalyticsView({ memories }: { memories: Memory[] }) {
   );
 }
 
-// -------------------------------------------------------------
-// SECTION: ARCHIVES VIEW (Working interactive vault)
-// -------------------------------------------------------------
+// SECTION: ARCHIVES VIEW
+
 function ArchivesView({
   memories,
   onDelete,
@@ -760,9 +805,8 @@ function ArchivesView({
   );
 }
 
-// -------------------------------------------------------------
-// REUSABLE MEMORY CARD ITEM (With Delete & Archive buttons)
-// -------------------------------------------------------------
+// REUSABLE MEMORY CARD ITEM
+
 function MemoryCardItem({
   memory,
   onDelete,
