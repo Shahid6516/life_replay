@@ -44,7 +44,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
           </div>
         </div>
 
-        <div className="w-full lg:w-1/2 px-2 sm:px-6 lg:px-8 py-4 flex flex-col justify-center relative">
+        <div className="max-w-[380px] lg:w-1/2 px-2 sm:px-6 lg:px-8 py-4 flex flex-col justify-center relative">
           <Link
             href="/"
             className="inline-flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white transition mb-6 w-fit group"
