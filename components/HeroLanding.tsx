@@ -26,8 +26,9 @@ export default function HeroLanding() {
   return (
     <div className="min-h-screen bg-[#070709] text-white flex flex-col items-center justify-start overflow-x-hidden selection:bg-[#ff4500] selection:text-white font-sans">
 
-      <div className="fixed top-10 left-1/2 -translate-x-1/2 w-[700px] h-[380px] bg-gradient-to-tr from-orange-500/10 via-amber-500/5 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
-      <div className="fixed bottom-10 right-10 w-96 h-96 bg-orange-600/5 rounded-full blur-3xl pointer-events-none -z-10" />
+      <div className="fixed top-10 left-1/2 -translate-x-1/2 w-[700px] h-[380px] bg-gradient-to-tr from-orange-500/10 via-amber-500/5 to-transparent rounded-full blur-3xl pointer-events-none z-0" />
+
+      <div className="fixed bottom-10 right-10 w-96 h-96 bg-amber-600/5 rounded-full blur-3xl pointer-events-none z-0" />
 
       <header className="w-full max-w-6xl px-4 pt-6 flex items-center justify-between z-30 sticky top-0 bg-[#070709]/80 backdrop-blur-md pb-4 border-b border-zinc-900/60">
 
