@@ -2,7 +2,7 @@
 
 import cloudinary from "@/lib/cloudinary";
 import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { Mood, MediaType } from "@prisma/client";
 
@@ -29,16 +29,32 @@ export async function createMemoryAction(data: CreateMemoryInput) {
     const { userId } = await auth();
 
     if (!userId) {
-      throw new Error("Unauthorized. Please log in.");
+      return {
+        success: false,
+        error: "Unauthorized. Please log in.",
+      };
     }
 
-    // 1. Find user in database
-    const user = await prisma.user.findUnique({
+    // 1. Find or automatically create user in Prisma database
+    let user = await prisma.user.findUnique({
       where: { clerkId: userId },
     });
 
     if (!user) {
-      throw new Error("User record not found in database.");
+      const clerkUser = await currentUser();
+      const email =
+        clerkUser?.emailAddresses?.[0]?.emailAddress || `${userId}@user.local`;
+      const name =
+        `${clerkUser?.firstName || ""} ${clerkUser?.lastName || ""}`.trim() ||
+        "Chronicle User";
+
+      user = await prisma.user.create({
+        data: {
+          clerkId: userId,
+          email: email,
+          name: name,
+        },
+      });
     }
 
     let hostedImageUrl: string | undefined = undefined;
@@ -64,7 +80,6 @@ export async function createMemoryAction(data: CreateMemoryInput) {
         tags: data.tag ? [data.tag] : ["Life"],
         aiSummary: "An unforgettable milestone etched into your personal chronicle.",
         aiReflection: "This moment captured a key memory in your personal journey.",
-        // Nested relation creation for Media
         ...(hostedImageUrl && {
           media: {
             create: [
