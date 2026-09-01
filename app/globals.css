@@ -197,3 +197,9 @@ body {
 .animate-fade-in {
   animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+.cl-developmentModeBadge,
+.cl-footerAction__developmentMode,
+[data-localization-key="developmentMode"] {
+  display: none !important;
+}
