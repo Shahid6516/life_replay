@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { Mood, MediaType } from "@prisma/client";
+import { generateMemoryReflection } from "@/actions/ai";
 
 interface CreateMemoryInput {
   title: string;
@@ -29,13 +30,10 @@ export async function createMemoryAction(data: CreateMemoryInput) {
     const { userId } = await auth();
 
     if (!userId) {
-      return {
-        success: false,
-        error: "Unauthorized. Please log in.",
-      };
+      return { success: false, error: "Unauthorized. Please log in." };
     }
 
-    // 1. Find or automatically create user in Prisma database
+    // 1. Ensure user exists in database
     let user = await prisma.user.findUnique({
       where: { clerkId: userId },
     });
@@ -59,17 +57,25 @@ export async function createMemoryAction(data: CreateMemoryInput) {
 
     let hostedImageUrl: string | undefined = undefined;
 
-    // 2. Upload photo to Cloudinary if attached
+    // 2. Upload photo to Cloudinary
     if (data.base64Image && data.base64Image.startsWith("data:image")) {
       const uploadResult = await cloudinary.uploader.upload(data.base64Image, {
         folder: "life_replay_memories",
         resource_type: "image",
       });
-
       hostedImageUrl = uploadResult.secure_url;
     }
 
-    // 3. Create Memory + nested Media record
+    // 3. Generate dynamic AI Biographer reflection
+    const dynamicAiReflection = await generateMemoryReflection({
+      title: data.title,
+      body: data.body,
+      mood: data.mood,
+      location: data.location,
+      base64Image: data.base64Image,
+    });
+
+    // 4. Save memory to database
     const newMemory = await prisma.memory.create({
       data: {
         userId: user.id,
@@ -78,8 +84,8 @@ export async function createMemoryAction(data: CreateMemoryInput) {
         mood: parseMood(data.mood),
         location: data.location || "Recorded Moment",
         tags: data.tag ? [data.tag] : ["Life"],
-        aiSummary: "An unforgettable milestone etched into your personal chronicle.",
-        aiReflection: "This moment captured a key memory in your personal journey.",
+        aiSummary: `${data.title} — ${data.mood}`,
+        aiReflection: dynamicAiReflection,
         ...(hostedImageUrl && {
           media: {
             create: [
@@ -98,7 +104,6 @@ export async function createMemoryAction(data: CreateMemoryInput) {
 
     revalidatePath("/");
 
-    // Format mood for dashboard UI (e.g., HAPPY -> Happy)
     const formattedMood =
       (newMemory.mood || "HAPPY").charAt(0) +
       (newMemory.mood || "HAPPY").slice(1).toLowerCase();
@@ -118,7 +123,7 @@ export async function createMemoryAction(data: CreateMemoryInput) {
         mood: formattedMood as any,
         location: newMemory.location || "Recorded Moment",
         imageUrl: newMemory.media?.[0]?.url || undefined,
-        aiReflection: newMemory.aiReflection || newMemory.aiSummary || undefined,
+        aiReflection: newMemory.aiReflection || undefined,
       },
     };
   } catch (error: any) {

@@ -8,6 +8,57 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY || "",
 });
 
+// Generates an introspective 1-2 sentence reflection for a single memory
+export async function generateMemoryReflection({
+  title,
+  body,
+  mood,
+  location,
+  base64Image,
+}: {
+  title: string;
+  body: string;
+  mood: string;
+  location?: string;
+  base64Image?: string;
+}) {
+  try {
+    const prompt = `You are a thoughtful, poetic, and observant personal biographer.
+Write a 1-2 sentence introspective reflection on this memory for the user's personal chronicle.
+Title: "${title}"
+Story: "${body}"
+Mood: "${mood}"
+Location: "${location || "Unspecified"}"
+Reflect on the deeper emotion, meaning, or growth in this moment. Keep it concise, warm, and poetic. Do not include quotes.`;
+
+    const contents: any[] = [{ text: prompt }];
+
+    // Attach image for multimodal vision analysis if present
+    if (base64Image && base64Image.startsWith("data:image")) {
+      const matches = base64Image.match(/^data:(.+);base64,(.+)$/);
+      if (matches) {
+        contents.push({
+          inlineData: {
+            mimeType: matches[1],
+            data: matches[2],
+          },
+        });
+      }
+    }
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents,
+    });
+
+    return response.text?.trim() || "A meaningful milestone etched into your chronicle.";
+  } catch (err) {
+    console.error("Single memory AI reflection error:", err);
+    return "A meaningful milestone etched into your chronicle.";
+  }
+}
+
+// Generates an overall multi-paragraph recap of all recorded memories
 export async function generateLifeRecap() {
   try {
     const user = await getDbUser();
@@ -15,11 +66,11 @@ export async function generateLifeRecap() {
 
     const memories = await prisma.memory.findMany({
       where: { userId: user.id },
-      orderBy: { eventDate: "asc" },
+      orderBy: { createdAt: "asc" },
       select: {
         title: true,
         description: true,
-        eventDate: true,
+        createdAt: true,
         mood: true,
         location: true,
       },
@@ -32,7 +83,7 @@ export async function generateLifeRecap() {
     const memoryDigest = memories
       .map(
         (m, idx) =>
-          `${idx + 1}. [${new Date(m.eventDate).toLocaleDateString()}] ${m.title} (${m.mood}) in ${
+          `${idx + 1}. [${new Date(m.createdAt).toLocaleDateString()}] ${m.title} (${m.mood}) in ${
             m.location || "Unknown"
           }: ${m.description || "No notes"}`
       )
@@ -47,7 +98,7 @@ Write a short, inspiring "Life Story Chapter Recap" (3-4 paragraphs max). Highli
 `;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
     });
 
