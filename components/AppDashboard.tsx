@@ -33,6 +33,49 @@ import {
 import { UserButton } from "@clerk/nextjs";
 import { createMemoryAction } from "@/actions/memories";
 
+function compressImage(
+  file: File,
+  maxWidth = 1600,
+  maxHeight = 1600,
+  quality = 0.75
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        const compressedBase64 = canvas.toDataURL("image/jpeg", quality);
+        resolve(compressedBase64);
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+}
+
 export interface Memory {
   id: string;
   title: string;
@@ -120,14 +163,19 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
     );
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, imageUrl: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    try {
+      const compressedBase64 = await compressImage(file);
+
+      setFormData((prev) => ({
+        ...prev,
+        imageUrl: compressedBase64,
+      }));
+    } catch (error) {
+      console.error("Error compressing image:", error);
     }
   };
 
@@ -203,9 +251,7 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
 
   return (
     <div className="min-h-screen bg-[#070709] text-white flex font-sans selection:bg-[#ff4500] selection:text-white">
-
-      {/*  SIDEBAR */}
-
+      {/* SIDEBAR */}
       <aside
         className={`h-screen sticky top-0 flex flex-col justify-between border-r border-[#1e1e24] bg-[#101014] transition-all duration-300 z-30 p-4 ${
           isSidebarOpen ? "w-64" : "w-20"
@@ -264,7 +310,9 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
                   <div className="flex items-center gap-3.5">
                     <Icon
                       className={`w-4 h-4 min-w-[1rem] transition-colors ${
-                        isActive ? "text-[#ff4500]" : "text-zinc-400 group-hover:text-zinc-200"
+                        isActive
+                          ? "text-[#ff4500]"
+                          : "text-zinc-400 group-hover:text-zinc-200"
                       }`}
                     />
                     {isSidebarOpen && (
@@ -284,16 +332,11 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
             })}
           </nav>
         </div>
-
-        {/* Bottom Actions */}
-       
       </aside>
 
-      {/* MAIN CONTENT  */}
+      {/* MAIN CONTENT */}
       <div className="flex-1 flex flex-col min-w-0 bg-[#070709]">
-        {/* Top Navbar */}
         <header className="px-6 py-4 flex items-center justify-between gap-4 border-b border-zinc-900 sticky top-0 bg-[#070709]/80 backdrop-blur-md z-20">
-          {/* Search Pill */}
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
             <input
@@ -353,7 +396,7 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
         </main>
       </div>
 
-      {/*  NEW MEMORY MODAL */}
+      {/* NEW MEMORY MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
           <div className="relative w-full max-w-lg rounded-[2rem] border border-zinc-800 bg-[#111116] p-6 sm:p-8 shadow-2xl space-y-5 my-8">
@@ -379,7 +422,9 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
                   required
                   placeholder="e.g. Mountain Pass Hike..."
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
                   className="w-full bg-[#16161c] border border-zinc-800 rounded-xl px-3.5 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-[#ff4500]"
                 />
               </div>
@@ -391,7 +436,9 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
                   rows={3}
                   placeholder="Capture thoughts, feelings, and milestones..."
                   value={formData.body}
-                  onChange={(e) => setFormData({ ...formData, body: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, body: e.target.value })
+                  }
                   className="w-full bg-[#16161c] border border-zinc-800 rounded-xl p-3.5 text-white placeholder-zinc-500 focus:outline-none focus:border-[#ff4500] leading-relaxed resize-none"
                 />
               </div>
@@ -403,7 +450,7 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
                   type="file"
                   accept="image/*"
                   ref={fileInputRef}
-                  onChange={handleImageUpload}
+                  onChange={handleImageChange}
                   className="hidden"
                 />
 
@@ -430,7 +477,9 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
                   >
                     <UploadCloud className="w-6 h-6 text-orange-400" />
                     <span className="text-xs font-semibold">Click to upload image</span>
-                    <span className="text-[10px] text-zinc-500">PNG, JPG, WebP up to 10MB</span>
+                    <span className="text-[10px] text-zinc-500">
+                      PNG, JPG, WebP (auto-compressed)
+                    </span>
                   </div>
                 )}
               </div>
@@ -441,7 +490,10 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
                   <select
                     value={formData.mood}
                     onChange={(e) =>
-                      setFormData({ ...formData, mood: e.target.value as Memory["mood"] })
+                      setFormData({
+                        ...formData,
+                        mood: e.target.value as Memory["mood"],
+                      })
                     }
                     className="w-full bg-[#16161c] border border-zinc-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#ff4500]"
                   >
@@ -458,7 +510,9 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
                     type="text"
                     placeholder="e.g. Travel, Projects"
                     value={formData.tag}
-                    onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, tag: e.target.value })
+                    }
                     className="w-full bg-[#16161c] border border-zinc-800 rounded-xl px-3 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-[#ff4500]"
                   />
                 </div>
@@ -470,7 +524,9 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
                   type="text"
                   placeholder="e.g. Manali, India"
                   value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, location: e.target.value })
+                  }
                   className="w-full bg-[#16161c] border border-zinc-800 rounded-xl px-3 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-[#ff4500]"
                 />
               </div>
@@ -508,7 +564,6 @@ export default function AppDashboard({ initialMemories = [] }: AppDashboardProps
 }
 
 // SECTION: DASHBOARD VIEW
-
 function DashboardView({
   memories,
   onNavigateTimeline,
@@ -524,9 +579,7 @@ function DashboardView({
 }) {
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Top 2 Bento Cards */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* Total Memories Hero */}
         <div className="md:col-span-6 rounded-[2rem] p-7 border border-zinc-800/80 bg-[#111116] shadow-xl flex flex-col justify-between min-h-[220px]">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-zinc-200">Active Memories</h3>
@@ -555,8 +608,6 @@ function DashboardView({
           </div>
         </div>
 
-        {/* AI Recaps Generated */}
-
         <div className="md:col-span-6 rounded-[2rem] p-7 border border-zinc-800/80 bg-[#111116] shadow-xl flex flex-col justify-between min-h-[220px]">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-amber-400" />
@@ -575,14 +626,16 @@ function DashboardView({
             <div
               className="bg-gradient-to-r from-amber-400 to-[#ff4500] h-full rounded-full transition-all duration-500"
               style={{
-                width: memories.length > 0 ? `${Math.min(100, memories.length * 20)}%` : "0%",
+                width:
+                  memories.length > 0
+                    ? `${Math.min(100, memories.length * 20)}%`
+                    : "0%",
               }}
             />
           </div>
         </div>
       </div>
 
-      {/* Feed */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-bold text-white flex items-center gap-2">
@@ -631,8 +684,6 @@ function DashboardView({
     </div>
   );
 }
-
-// SECTION: FULL TIMELINE VIEW
 
 function TimelineView({
   memories,
@@ -683,8 +734,6 @@ function TimelineView({
   );
 }
 
-// SECTION: SNAPSHOTS GALLERY
-
 function SnapshotsView({ memories }: { memories: Memory[] }) {
   const photoMemories = memories.filter((m) => m.imageUrl);
 
@@ -724,8 +773,6 @@ function SnapshotsView({ memories }: { memories: Memory[] }) {
   );
 }
 
-// SECTION: ANALYTICS VIEW
-
 function AnalyticsView({ memories }: { memories: Memory[] }) {
   return (
     <div className="space-y-6 animate-fade-in max-w-4xl">
@@ -758,8 +805,6 @@ function AnalyticsView({ memories }: { memories: Memory[] }) {
     </div>
   );
 }
-
-// SECTION: ARCHIVES VIEW
 
 function ArchivesView({
   memories,
@@ -805,8 +850,6 @@ function ArchivesView({
   );
 }
 
-// REUSABLE MEMORY CARD ITEM
-
 function MemoryCardItem({
   memory,
   onDelete,
@@ -824,11 +867,9 @@ function MemoryCardItem({
           <span>{memory.date}</span>
         </div>
 
-        {/* Action icons */}
         <div className="flex items-center gap-2">
           {renderMoodBadge(memory.mood)}
 
-          {/* Archive / Unarchive Trigger */}
           {onArchiveToggle && (
             <button
               onClick={() => onArchiveToggle(memory.id)}
@@ -843,7 +884,6 @@ function MemoryCardItem({
             </button>
           )}
 
-          {/* Delete Trigger */}
           {onDelete && (
             <button
               onClick={() => onDelete(memory.id)}
